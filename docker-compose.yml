@@ -7,7 +7,7 @@ services:
       - ./src:/var/www/html
       - laravel_storage:/var/www/html/storage
       - laravel_cache:/var/www/html/bootstrap/cache
-    command: sh -lc "chown -R www-data:www-data storage bootstrap/cache && php-fpm"
+    command: sh -lc "mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache && php-fpm"
     depends_on:
       - db
 

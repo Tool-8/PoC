@@ -41,20 +41,26 @@ git clone https://github.com/Tool-8/PoC.git
 cd PoC
 ```
 
-### 2) Avvia i container
+### 2) Installa dipendenze
+```bash
+docker compose exec app composer install
+```
+
+### 3) Avvia i container
 ```bash
 docker compose up -d --build
 ```
 
-### 3) Configura l’ambiente e inizializza Laravel
+### 4) Configura l’ambiente e inizializza Laravel
 ```bash
 docker compose exec app bash -lc "cp .env.example .env"
 docker compose exec app bash -lc "php artisan key:generate"
 docker compose exec app bash -lc "php artisan migrate"
 ```
 
-### 4) Apri l’applicazione
-App: http://localhost:8080
+### 5) Apri l’applicazione
+App: http://localhost:8080 
+<br>
 Vite: http://localhost:5173
 
 ### Per spegnere il container è sufficiente fare

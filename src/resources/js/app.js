@@ -1,1 +1,174 @@
 import './bootstrap';
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+
+const els = {
+    list: document.getElementById("noteList"),
+    search: document.getElementById("search"),
+    btnNew: document.getElementById("btnNew"),
+    btnSave: document.getElementById("btnSave"),
+    title: document.getElementById("title"),
+    content: document.getElementById("content"),
+    preview: document.getElementById("preview"),
+    tabEdit: document.getElementById("tabEdit"),
+    tabPreview: document.getElementById("tabPreview"),
+    status: document.getElementById("status"),
+};
+
+let notes = [];
+let currentId = null;
+
+function setStatus(msg) {
+    els.status.textContent = msg || "";
+}
+
+function setActiveTab(tab) {
+    const isEdit = tab === "edit";
+    els.content.classList.toggle("hidden", !isEdit);
+    els.preview.classList.toggle("hidden", isEdit);
+
+    els.tabEdit.className = isEdit
+        ? "px-2 py-1 rounded bg-gray-900 text-white"
+        : "px-2 py-1 rounded border";
+
+    els.tabPreview.className = !isEdit
+        ? "px-2 py-1 rounded bg-gray-900 text-white"
+        : "px-2 py-1 rounded border";
+
+    if (!isEdit) renderPreview();
+}
+
+function renderPreview() {
+    const md = els.content.value || "";
+    const html = marked.parse(md);
+    els.preview.innerHTML = DOMPurify.sanitize(html);
+}
+
+async function api(path, opts = {}) {
+    const res = await fetch(path, {
+        headers: {
+        Accept: "application/json",
+        ...(opts.body ? { "Content-Type": "application/json" } : {}),
+        ...(opts.headers || {}),
+        },
+        ...opts,
+    });
+
+    // Gestione risposta
+    const text = await res.text();
+    let data = null;
+    try {
+        data = text ? JSON.parse(text) : null;
+    } catch {
+        data = { raw: text };
+    }
+
+    if (!res.ok) {
+        console.error("API error", res.status, data);
+        throw new Error(data?.message || `HTTP ${res.status}`);
+    }
+    return data;
+}
+
+async function loadList() {
+    setStatus("Caricamento...");
+    notes = await api("/api/notes");
+    renderList();
+    setStatus("");
+}
+
+function renderList() {
+    const q = (els.search.value || "").toLowerCase().trim();
+    const filtered = q
+        ? notes.filter((n) => (n.title || "").toLowerCase().includes(q))
+        : notes;
+
+    els.list.innerHTML = "";
+
+    if (filtered.length === 0) {
+        const li = document.createElement("li");
+        li.className = "text-sm text-gray-500";
+        li.textContent = "Nessuna nota";
+        els.list.appendChild(li);
+        return;
+    }
+
+    for (const n of filtered) {
+        const li = document.createElement("li");
+        li.className =
+        "border rounded p-2 cursor-pointer hover:bg-gray-50 transition";
+
+        li.innerHTML = `
+        <div class="font-medium text-sm">${escapeHtml(n.title || "(senza titolo)")}</div>
+        <div class="text-xs text-gray-500">${escapeHtml(n.updated_at || "")}</div>
+        `;
+
+        li.addEventListener("click", () => openNote(n.id));
+        els.list.appendChild(li);
+    }
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+async function openNote(id) {
+    setStatus("Apertura...");
+    const note = await api(`/api/notes/${id}`);
+    currentId = note.id;
+    els.title.value = note.title || "";
+    els.content.value = note.content_md || "";
+    setStatus(`Aperta ${currentId.slice(0, 8)}…`);
+    setActiveTab("edit");
+}
+
+function newNote() {
+    currentId = null;
+    els.title.value = "";
+    els.content.value = "";
+    setStatus("Nuova nota (non salvata)");
+    setActiveTab("edit");
+}
+
+async function saveNote() {
+    const payload = {
+        title: els.title.value.trim() || "Senza titolo",
+        content_md: els.content.value || "",
+    };
+
+    setStatus("Salvataggio...");
+
+    if (!currentId) {
+        const created = await api("/api/notes", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        });
+        currentId = created.id;
+        setStatus(`Salvata ${currentId.slice(0, 8)}…`);
+    } else {
+        await api(`/api/notes/${currentId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+        });
+        setStatus(`Aggiornata ${currentId.slice(0, 8)}…`);
+    }
+
+    await loadList();
+}
+
+els.btnNew?.addEventListener("click", newNote);
+els.btnSave?.addEventListener("click", saveNote);
+els.search?.addEventListener("input", renderList);
+
+els.tabEdit?.addEventListener("click", () => setActiveTab("edit"));
+els.tabPreview?.addEventListener("click", () => setActiveTab("preview"));
+els.content?.addEventListener("input", () => {
+    if (!els.preview.classList.contains("hidden")) renderPreview();
+});
+
+loadList().catch((e) => setStatus(`Error: ${e.message}`));
