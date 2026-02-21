@@ -39,7 +39,23 @@
                 <div class="mt-3 flex items-center gap-2 text-sm">
                     <button id="tabEdit" class="px-2 py-1 rounded bg-gray-900 text-white">Edit</button>
                     <button id="tabPreview" class="px-2 py-1 rounded border">Preview</button>
+
+                    <button id="btnSummarize" class="px-2 py-1 rounded bg-emerald-600 text-white">
+                        Riassumi
+                    </button>
+
                     <span id="status" class="ml-auto text-gray-600"></span>
+                    </div>
+
+                    <!-- Output riassunto (opzionale ma utile) -->
+                    <div id="summaryBox" class="hidden mt-3 border rounded p-3 bg-emerald-50">
+                    <div class="flex items-center justify-between">
+                        <div class="font-semibold text-sm">Riassunto</div>
+                        <button id="btnApplySummary" class="text-xs px-2 py-1 rounded bg-emerald-700 text-white">
+                        Inserisci in nota
+                        </button>
+                    </div>
+                    <pre id="summaryText" class="mt-2 text-sm whitespace-pre-wrap"></pre>
                 </div>
 
                 <div class="mt-3">

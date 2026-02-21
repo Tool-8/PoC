@@ -13,6 +13,10 @@ const els = {
     tabEdit: document.getElementById("tabEdit"),
     tabPreview: document.getElementById("tabPreview"),
     status: document.getElementById("status"),
+    btnSummarize: document.getElementById("btnSummarize"),
+    summaryBox: document.getElementById("summaryBox"),
+    summaryText: document.getElementById("summaryText"),
+    btnApplySummary: document.getElementById("btnApplySummary"),
 };
 
 let notes = [];
@@ -123,6 +127,8 @@ async function openNote(id) {
     currentId = note.id;
     els.title.value = note.title || "";
     els.content.value = note.content_md || "";
+    lastSummary = "";
+    els.summaryBox?.classList.add("hidden");
     setStatus(`Aperta ${currentId.slice(0, 8)}…`);
     setActiveTab("edit");
 }
@@ -131,6 +137,8 @@ function newNote() {
     currentId = null;
     els.title.value = "";
     els.content.value = "";
+    lastSummary = "";
+    els.summaryBox?.classList.add("hidden");
     setStatus("Nuova nota (non salvata)");
     setActiveTab("edit");
 }
@@ -172,3 +180,73 @@ els.content?.addEventListener("input", () => {
 });
 
 loadList().catch((e) => setStatus(`Error: ${e.message}`));
+
+// -- Summarize
+
+let lastSummary = "";
+
+function setBusy(btn, isBusy, labelBusy = "…") {
+  if (!btn) return;
+  btn.disabled = isBusy;
+  btn.classList.toggle("opacity-60", isBusy);
+  btn.classList.toggle("cursor-not-allowed", isBusy);
+  if (btn.dataset.label == null) btn.dataset.label = btn.textContent;
+  btn.textContent = isBusy ? labelBusy : btn.dataset.label;
+}
+
+async function summarizeCurrentNote() {
+  const text = (els.content.value || "").trim();
+  if (!text) {
+    setStatus("Niente da riassumere (contenuto vuoto).");
+    return;
+  }
+
+  setStatus("Riassunto in corso...");
+  setBusy(els.btnSummarize, true, "Riassumo…");
+
+  try {
+    // Nota: qui mandiamo JSON vero dal browser → niente problemi di virgolette
+    const data = await api("/api/ai/summarize", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    });
+
+    // Adatta se la tua API risponde con una chiave specifica
+    const summary =
+      data?.summary ?? data?.content ?? data?.result ?? data?.text ?? "";
+
+    if (!summary) {
+      lastSummary = "";
+      els.summaryBox?.classList.add("hidden");
+      setStatus("Nessun riassunto ricevuto.");
+      return;
+    }
+
+    lastSummary = summary;
+    if (els.summaryText) els.summaryText.textContent = summary;
+    els.summaryBox?.classList.remove("hidden");
+    setStatus("Riassunto pronto.");
+  } catch (e) {
+    setStatus(`Errore riassunto: ${e.message}`);
+  } finally {
+    setBusy(els.btnSummarize, false);
+  }
+}
+
+function applySummaryToNote() {
+  if (!lastSummary) return;
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  const block = `## Riassunto (${stamp})\n\n${lastSummary}\n\n---\n\n`;
+
+  els.content.value = block + (els.content.value || "");
+  setActiveTab("edit");
+
+  // aggiorna preview se è aperta
+  if (els.preview && !els.preview.classList.contains("hidden")) renderPreview();
+
+  setStatus("Riassunto inserito nella nota (non ancora salvato).");
+}
+
+els.btnSummarize?.addEventListener("click", summarizeCurrentNote);
+els.btnApplySummary?.addEventListener("click", applySummaryToNote);
