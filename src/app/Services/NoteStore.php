@@ -132,6 +132,15 @@ class NoteStore
         ];
     }
 
+    public function isTitleUsed (string $title, ? string $excludeId = null) : bool {
+        foreach ($this->list() as $note) {
+            if ( mb_strtolower($note["title"]) == mb_strtolower($title) && $note["id"] !== $excludeId ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function delete (string $id) : void {
         $this->assertValidId($id);
         $this->ensureDir();

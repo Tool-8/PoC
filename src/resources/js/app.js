@@ -70,7 +70,9 @@ async function api(path, opts = {}) {
 
     if (!res.ok) {
         console.error("API error", res.status, data);
-        throw new Error(data?.message || `HTTP ${res.status}`);
+        const err = new Error(data?.message || `HTTP ${res.status}`);
+        err.status = res.status;
+        throw err;
     }
     return data;
 }
@@ -152,22 +154,32 @@ async function saveNote() {
 
     setStatus("Salvataggio...");
 
-    if (!currentId) {
+    try {
+        if (!currentId) {
         const created = await api("/api/notes", {
         method: "POST",
         body: JSON.stringify(payload),
         });
         currentId = created.id;
         setStatus(`Salvata ${currentId.slice(0, 8)}…`);
-    } else {
-        await api(`/api/notes/${currentId}`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-        });
-        setStatus(`Aggiornata ${currentId.slice(0, 8)}…`);
+        } else {
+            await api(`/api/notes/${currentId}`, {
+            method: "PUT",
+            body: JSON.stringify(payload),
+            });
+            setStatus(`Aggiornata ${currentId.slice(0, 8)}…`);
+        }
+        await loadList();
+    } catch (error) {
+        if (error.status === 409) {
+            setStatus("Titolo nota già utilizzato")
+        } else {
+            setStatus("Errore nel salvataggio");
+        }
     }
+    
 
-    await loadList();
+    
 }
 
 async function deleteNote(id) {
@@ -177,6 +189,7 @@ async function deleteNote(id) {
     currentId = null;
     els.title.value = "";
     els.content.value = "";
+    els.preview.innerHTML = "";
     els.summaryBox?.classList.add("hidden");
     setStatus("Nota eliminata.");
     await loadList();

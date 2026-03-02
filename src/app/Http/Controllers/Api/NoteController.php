@@ -37,6 +37,10 @@ class NoteController extends Controller
             'content_md' => ['nullable', 'string'],
         ]);
 
+        if ( $this->store->isTitleUsed($data["title"]) ) {
+            return response()->json(['message' => 'Titolo già utilizzato'], 409);
+        }
+
         $note = $this->store->create(
             $data['title'],
             $data['content_md'] ?? ''
@@ -52,6 +56,10 @@ class NoteController extends Controller
             'title' => ['required', 'string', 'max:200'],
             'content_md' => ['nullable', 'string'],
         ]);
+
+        if ( $this->store->isTitleUsed($data["title"], $id) ) {
+            return response()->json(['message' => 'Titolo già utilizzato'], 409);
+        }
 
         try {
             $note = $this->store->update(
