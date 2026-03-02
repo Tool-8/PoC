@@ -196,32 +196,30 @@ function setBusy(btn, isBusy, labelBusy = "…") {
 
 async function summarizeCurrentNote() {
   const text = (els.content.value || "").trim();
+
+  // Salva la selezione
+  const selStart = els.content.selectionStart;
+  const selEnd = els.content.selectionEnd;
+
   if (!text) {
     setStatus("Niente da riassumere (contenuto vuoto).");
     return;
   }
-
   setStatus("Riassunto in corso...");
   setBusy(els.btnSummarize, true, "Riassumo…");
-
   try {
-    // Nota: qui mandiamo JSON vero dal browser → niente problemi di virgolette
     const data = await api("/api/ai/summarize", {
       method: "POST",
       body: JSON.stringify({ text }),
     });
-
-    // Adatta se la tua API risponde con una chiave specifica
     const summary =
       data?.summary ?? data?.content ?? data?.result ?? data?.text ?? "";
-
     if (!summary) {
       lastSummary = "";
       els.summaryBox?.classList.add("hidden");
       setStatus("Nessun riassunto ricevuto.");
       return;
     }
-
     lastSummary = summary;
     if (els.summaryText) els.summaryText.textContent = summary;
     els.summaryBox?.classList.remove("hidden");
@@ -229,6 +227,9 @@ async function summarizeCurrentNote() {
   } catch (e) {
     setStatus(`Errore riassunto: ${e.message}`);
   } finally {
+    // Ripristina la selezione
+    els.content.focus();
+    els.content.setSelectionRange(selStart, selEnd);
     setBusy(els.btnSummarize, false);
   }
 }
