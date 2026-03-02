@@ -132,6 +132,18 @@ class NoteStore
         ];
     }
 
+    public function delete (string $id) : void {
+        $this->assertValidId($id);
+        $this->ensureDir();
+
+         $path = $this->pathForId($id);
+        if (!Storage::disk('local')->exists($path)) {
+            throw new RuntimeException('NOT_FOUND');
+        }
+
+        Storage::disk('local')->delete($path);
+    }
+
     private function ensureDir(): void
     {
         if (!Storage::disk('local')->exists(self::DIR)) {

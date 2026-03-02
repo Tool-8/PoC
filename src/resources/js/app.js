@@ -17,6 +17,7 @@ const els = {
     summaryBox: document.getElementById("summaryBox"),
     summaryText: document.getElementById("summaryText"),
     btnApplySummary: document.getElementById("btnApplySummary"),
+    btnDelete: document.getElementById("btnDelete"),
 };
 
 let notes = [];
@@ -169,6 +170,18 @@ async function saveNote() {
     await loadList();
 }
 
+async function deleteNote(id) {
+    if (!confirm("Sei sicuro di voler eliminare questa nota?")) return;
+    setStatus("Eliminazione...");
+    await api(`/api/notes/${id}`, { method: "DELETE" });
+    currentId = null;
+    els.title.value = "";
+    els.content.value = "";
+    els.summaryBox?.classList.add("hidden");
+    setStatus("Nota eliminata.");
+    await loadList();
+}
+
 els.btnNew?.addEventListener("click", newNote);
 els.btnSave?.addEventListener("click", saveNote);
 els.search?.addEventListener("input", renderList);
@@ -251,3 +264,7 @@ function applySummaryToNote() {
 
 els.btnSummarize?.addEventListener("click", summarizeCurrentNote);
 els.btnApplySummary?.addEventListener("click", applySummaryToNote);
+
+els.btnDelete?.addEventListener("click", () => {
+    if (currentId) deleteNote(currentId);
+});

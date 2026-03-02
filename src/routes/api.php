@@ -10,6 +10,7 @@ Route::prefix('notes')->group(function () {
     Route::get('/{id}', [NoteController::class, 'show']);   // dettaglio
     Route::post('/', [NoteController::class, 'store']);     // crea
     Route::put('/{id}', [NoteController::class, 'update']); // aggiorna
+    Route::delete('/{id}', [NoteController::class, 'destroy']);
 });
 
 Route::post('/ai/summarize', function (Request $request, \App\Services\LlmService $llm) {

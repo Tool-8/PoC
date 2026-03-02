@@ -66,6 +66,16 @@ class NoteController extends Controller
         }
     }
 
+    // DELETE /api/notes/{id}
+    public function destroy(string $id) {
+        try {
+            $this->store->delete($id);
+            return response()->json(null, 204);
+        } catch (RuntimeException $e) {
+            return $this->mapError($e);
+        }
+    }
+
     private function mapError(RuntimeException $e)
     {
         return match ($e->getMessage()) {

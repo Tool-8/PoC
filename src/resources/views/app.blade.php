@@ -34,6 +34,7 @@
                 <div class="flex items-center gap-2">
                     <input id="title" class="flex-1 border rounded px-3 py-2" placeholder="Titolo..." />
                     <button id="btnSave" class="px-3 py-2 rounded bg-blue-600 text-white text-sm">Save</button>
+                    <button id="btnDelete" class="px-3 py-2 rounded bg-red-600 text-white text-sm">Delete</button>
                 </div>
 
                 <div class="mt-3 flex items-center gap-2 text-sm">
