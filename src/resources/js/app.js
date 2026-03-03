@@ -221,11 +221,13 @@ function setBusy(btn, isBusy, labelBusy = "…") {
 }
 
 async function summarizeCurrentNote() {
-  const text = (els.content.value || "").trim();
 
-  // Salva la selezione
-  const selStart = els.content.selectionStart;
-  const selEnd = els.content.selectionEnd;
+    // viene inviato solo il testo selezionato, se non c'è nulla selezionato invia l'intero testo
+    const selStart = els.content.selectionStart;
+    const selEnd = els.content.selectionEnd;
+    const fullText = els.content.value || "";
+    const text = (selEnd > selStart ? fullText.slice(selStart, selEnd) : fullText).trim();
+  
 
   if (!text) {
     setStatus("Niente da riassumere (contenuto vuoto).");
