@@ -25,3 +25,16 @@ Route::post('/ai/summarize', function (Request $request, \App\Services\LlmServic
         'summary' => $llm->summarize($text)
     ]);
 });
+
+Route::post('/ai/translateToEng', function (Request $request, \App\Services\LlmService $llm) {
+
+    $text = $request->input('text');
+
+    if (!$text) {
+        return response()->json(['error' => 'Missing text'], 422);
+    }
+
+    return response()->json([
+        'summary' => $llm->translateToEng($text)
+    ]);
+});

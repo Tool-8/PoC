@@ -44,6 +44,9 @@
                     <button id="btnSummarize" class="px-2 py-1 rounded bg-emerald-600 text-white">
                         Riassumi
                     </button>
+                    <button id="btnTranslateEng" class="px-2 py-1 rounded bg-yellow-600 text-white">
+                        Traduci in Inglese
+                    </button>
 
                     <span id="status" class="ml-auto text-gray-600"></span>
                     </div>
@@ -60,8 +63,7 @@
                 </div>
 
                 <div class="mt-3">
-                    <textarea id="content" class="w-full h-[55vh] border rounded p-3 font-mono text-sm" placeholder="Scrivi in Markdown..."></textarea>
-
+                    <div id="content" contenteditable="true" class="w-full min-h-[55vh] border rounded p-3 font-mono text-sm outline-none overflow-y-auto" style="white-space: pre-wrap;"></div>
                     <div id="preview" class="hidden w-full min-h-[55vh] border rounded p-3 prose max-w-none"></div>
                 </div>
             </main>
