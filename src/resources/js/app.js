@@ -40,6 +40,8 @@ function setActiveTab(tab) {
         ? "px-2 py-1 rounded bg-gray-900 text-white"
         : "px-2 py-1 rounded border";
 
+    els.btnSummarize.classList.toggle("hidden", !isEdit);    
+
     if (!isEdit) renderPreview();
 }
 
