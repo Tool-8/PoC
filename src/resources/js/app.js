@@ -220,14 +220,22 @@ function setBusy(btn, isBusy, labelBusy = "…") {
   btn.textContent = isBusy ? labelBusy : btn.dataset.label;
 }
 
+// gestione corretta della selezione
+let savedSelection = null;
+els.content?.addEventListener("mouseup", () => {
+    savedSelection = {
+        start: els.content.selectionStart,
+        end: els.content.selectionEnd,
+    };
+});
+
 async function summarizeCurrentNote() {
 
     // viene inviato solo il testo selezionato, se non c'è nulla selezionato invia l'intero testo
-    const selStart = els.content.selectionStart;
-    const selEnd = els.content.selectionEnd;
+    const selStart = savedSelection?.start ?? 0;
+    const selEnd = savedSelection?.end ?? 0;
     const fullText = els.content.value || "";
     const text = (selEnd > selStart ? fullText.slice(selStart, selEnd) : fullText).trim();
-  
 
   if (!text) {
     setStatus("Niente da riassumere (contenuto vuoto).");
