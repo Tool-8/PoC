@@ -289,9 +289,13 @@ function applySummaryToNote() {
     const selEnd = savedSelection?.end ?? 0;
 
     if (selEnd > selStart) {
-        // Sostituisce solo la selezione
+        // sostitusice solo la selezione se presente
         els.content.value = full.slice(0, selStart) + lastSummary + full.slice(selEnd);
+    } else {
+        els.content.value = lastSummary;
     }
+
+    savedSelection = null;
 
     els.summaryBox?.classList.add("hidden");
     setActiveTab("edit");
