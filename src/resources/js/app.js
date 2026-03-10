@@ -231,6 +231,14 @@ els.content?.addEventListener("mouseup", () => {
     };
 });
 
+els.content?.addEventListener("blur", () => {
+    const start = els.content.selectionStart;
+    const end = els.content.selectionEnd;
+    if (end > start) { // salva solo se c'è davvero una selezione
+        savedSelection = { start, end };
+    }
+});
+
 async function summarizeCurrentNote() {
 
     // viene inviato solo il testo selezionato, se non c'è nulla selezionato invia l'intero testo
@@ -250,8 +258,9 @@ async function summarizeCurrentNote() {
       method: "POST",
       body: JSON.stringify({ text }),
     });
-    const summary =
-      data?.summary ?? data?.content ?? data?.result ?? data?.text ?? "";
+    const summary = data?.summary ?? data?.content ?? data?.result ?? data?.text ?? "";
+    //const summary = "riassunto"; // test
+    
     if (!summary) {
       lastSummary = "";
       els.summaryBox?.classList.add("hidden");
@@ -273,18 +282,24 @@ async function summarizeCurrentNote() {
 }
 
 function applySummaryToNote() {
-  if (!lastSummary) return;
+    if (!lastSummary) return;
 
-  const stamp = new Date().toISOString().slice(0, 10);
-  const block = `## Riassunto (${stamp})\n\n${lastSummary}\n\n---\n\n`;
+    const full = els.content.value || "";
+    const selStart = savedSelection?.start ?? 0;
+    const selEnd = savedSelection?.end ?? 0;
 
-  els.content.value = block + (els.content.value || "");
-  setActiveTab("edit");
+    if (selEnd > selStart) {
+        // Sostituisce solo la selezione
+        els.content.value = full.slice(0, selStart) + lastSummary + full.slice(selEnd);
+    }
 
-  // aggiorna preview se è aperta
-  if (els.preview && !els.preview.classList.contains("hidden")) renderPreview();
+    els.summaryBox?.classList.add("hidden");
+    setActiveTab("edit");
 
-  setStatus("Riassunto inserito nella nota (non ancora salvato).");
+    // aggiorna preview se è aperta
+    if (els.preview && !els.preview.classList.contains("hidden")) renderPreview();
+
+    setStatus("Riassunto inserito nella nota (non ancora salvato).");
 }
 
 els.btnSummarize?.addEventListener("click", summarizeCurrentNote);
