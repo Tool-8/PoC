@@ -59,7 +59,13 @@ return [
             'throw' => false,
             'report' => false,
         ],
-
+        
+        'notes' => [
+            'driver' => 'local',
+            'root' => storage_path('app/notes'),
+            'throw' => false,
+        ],
+        
     ],
 
     /*
